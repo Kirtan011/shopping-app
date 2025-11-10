@@ -11,10 +11,10 @@ export default function Navbar({ cartCount = 0 }) {
 
   return (
     <nav className="fixed top-0 left-0 w-full backdrop-blur-lg bg-gray-950/80 border-b border-gray-800 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-2 py-4 flex justify-between items-center">
         <Link
           to="/"
-          className="text-4xl font-light  uppercase tracking-wider text-white hover:text-gray-200 transition-all duration-300"
+          className="sm:text-3xl text-2xl pr-1 pl-0 font-light  uppercase tracking-wider text-white hover:text-gray-200 transition-all duration-300"
         >
           <i>ShopVop</i>
         </Link>
