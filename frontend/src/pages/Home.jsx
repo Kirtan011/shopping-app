@@ -4,7 +4,7 @@ import ProductCard from "../components/ProductCard";
 
 export default function Home() {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // ✅ added loading state
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -18,7 +18,6 @@ export default function Home() {
         setLoading(false);
       }
     };
-
     loadProducts();
   }, []);
 
@@ -33,23 +32,31 @@ export default function Home() {
   };
 
   return (
-    <div className="px-6 py-8">
-      <h1 className="text-2xl font-bold mb-6">Products</h1>
-
+    <div className="min-h-screen flex flex-col">
+      {/* ✅ Loader */}
       {loading ? (
-        <div className="text-center text-gray-400 text-lg">Loading...</div>
+        <div className="flex-1 flex justify-center items-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">Loading products...</p>
+          </div>
+        </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {products.map((p) => (
-              <ProductCard
-                key={p._id || p.id}
-                product={p}
-                onAdd={handleAddToCart}
-              />
-            ))}
+          <div className="px-6 py-8 flex-1">
+            <h1 className="text-2xl font-bold mb-6">Products</h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {products.map((p) => (
+                <ProductCard
+                  key={p._id || p.id}
+                  product={p}
+                  onAdd={handleAddToCart}
+                />
+              ))}
+            </div>
           </div>
 
+          {/* Footer */}
           <footer className="mt-20 border-t border-gray-800 pt-8 pb-6 text-center text-gray-400 text-sm bg-gray-950/80 backdrop-blur-md">
             <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center">
               <p className="text-gray-400">
