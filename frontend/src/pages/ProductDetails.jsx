@@ -62,7 +62,7 @@ export default function ProductDetails() {
 
   return (
     <div className="mt-12 max-w-2xl mx-auto p-4">
-      <img src={product.image} className="w-60 mx-auto" />
+      <img src={product.image} className="w-90 mx-auto" />
       <h1 className="text-3xl font-bold mt-4">{product.name}</h1>
       <p className="text-gray-400/80 mt-2">{product.description}</p>
       <p className="text-xl font-semibold mt-4">₹{product.price}</p>

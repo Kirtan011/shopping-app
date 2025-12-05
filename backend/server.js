@@ -14,8 +14,9 @@ app.use(bodyParser.json());
 
 let PRODUCTS = [];
 let CART = [];
+let CATEGORIES = [];
 
-// LOAD PRODUCTS (DummyJSON)
+// LOAD PRODuCTS (DummyJSON)
 
 async function loadProducts() {
   try {
@@ -38,13 +39,35 @@ async function loadProducts() {
 
 loadProducts();
 
-// GET PRODUCTS
+async function loadCategories() {
+  try {
+    const res = await axios.get("https://dummyjson.com/products/categories");
+    CATEGORIES = res.data;
+    console.log("Categories loaded:", CATEGORIES.length);
+  } catch (err) {
+    console.error("Failed to load categories:", err.message);
+    CATEGORIES = [];
+  }
+}
+
+loadCategories();
+
+//GET CATEGORIES
+app.get("/api/categories", (req, res) => {
+  res.json(CATEGORIES);
+});
+
+// GET PRODUCTS BY CATEGORIES
 app.get("/api/products", async (req, res) => {
+  const { category } = req.query;
   if (PRODUCTS.length === 0) {
-    console.log("Products empty → retrying load...");
     await loadProducts();
   }
-  res.json(PRODUCTS);
+  let result = PRODUCTS;
+  if (category) {
+    result = result.filter((p) => p.category === category);
+  }
+  res.json(result);
 });
 
 // GET CART
@@ -166,8 +189,10 @@ app.post("/api/checkout", (req, res) => {
   res.json({ message: "Checkout successful (mock)", receipt });
 });
 
+//HEALT CHECK
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
+//PORT LISTENER
 app.listen(PORT, () =>
   console.log(`Backend running on http://localhost:${PORT}`)
 );
