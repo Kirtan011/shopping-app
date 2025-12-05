@@ -39,10 +39,6 @@ export default function Cart() {
           >
             Proceed to Checkout
           </Link>
-          <ProductDetails
-            onRemove={(id) => removeCartItem(id).then(load)}
-            onUpdate={(id, qty) => updateCartItem(id, qty).then(load)}
-          />
         </>
       )}
     </div>
