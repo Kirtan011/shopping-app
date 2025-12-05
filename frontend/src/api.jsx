@@ -1,4 +1,6 @@
-const BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
+const BASE = import.meta.env.DEV
+  ? "http://localhost:5000"
+  : import.meta.env.VITE_API_BASE;
 
 export async function fetchProducts() {
   const res = await fetch(`${BASE}/api/products`);

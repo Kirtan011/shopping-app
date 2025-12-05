@@ -2,36 +2,44 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-const path = require("path");
 const { v4: uuidv4 } = require("uuid");
-const fs = require("fs");
+const axios = require("axios");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({ origin: "*" }));
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 
-// Load products from JSON
-const productsPath = path.join(__dirname, "data", "products.json");
 let PRODUCTS = [];
-try {
-  PRODUCTS = JSON.parse(fs.readFileSync(productsPath));
-} catch (err) {
-  console.error("Could not load products.json, using fallback.");
-  PRODUCTS = [];
+let CART = [];
+
+async function loadProducts() {
+  try {
+    const res = await axios.get("https://fakestoreapi.com/products");
+    PRODUCTS = res.data.map((p) => ({
+      id: p.id,
+      name: p.title,
+      price: p.price,
+      image: p.image,
+      description: p.description,
+    }));
+    console.log("Products loaded from third-party API");
+  } catch (err) {
+    console.error("Failed to load 3rd-party products:", err.message);
+    PRODUCTS = [];
+  }
 }
 
-// In-memory cart: array of { id: cartItemId, productId, qty }
-let CART = [];
+loadProducts();
 
 // GET /api/products
 app.get("/api/products", (req, res) => {
   res.json(PRODUCTS);
 });
 
-// GET /api/cart -> returns cart items with product details and total
+// GET /api/cart
 app.get("/api/cart", (req, res) => {
   const items = CART.map((ci) => {
     const p = PRODUCTS.find((x) => x.id === ci.productId) || {};
@@ -48,20 +56,14 @@ app.get("/api/cart", (req, res) => {
   const total = items.reduce((s, it) => s + it.lineTotal, 0);
   res.json({ items, total });
 });
-// POST /api/cart -> add { productId, qty }
+
+// POST /api/cart
 app.post("/api/cart", (req, res) => {
   const { productId, qty } = req.body;
-  console.log("🛍 Add request:", req.body);
-
-  // find the product in PRODUCTS array
-  const product = PRODUCTS.find(
-    (p) => p._id === productId || p.id === productId
-  );
+  const product = PRODUCTS.find((p) => p.id === productId);
   if (!product) return res.status(404).json({ message: "Product not found" });
 
-  // check if already in cart
   const existing = CART.find((item) => item.productId === productId);
-
   if (existing) {
     existing.qty += qty;
   } else {
@@ -72,7 +74,6 @@ app.post("/api/cart", (req, res) => {
     });
   }
 
-  // compute total and send full cart back
   const items = CART.map((ci) => {
     const p = PRODUCTS.find((x) => x.id === ci.productId) || {};
     return {
@@ -85,12 +86,12 @@ app.post("/api/cart", (req, res) => {
       lineTotal: (p.price || 0) * (ci.qty || 0),
     };
   });
-  const total = items.reduce((sum, i) => sum + i.lineTotal, 0);
 
+  const total = items.reduce((sum, i) => sum + i.lineTotal, 0);
   res.json({ items, total });
 });
 
-// DELETE /api/cart/:id -> remove item by cart item id
+// DELETE /api/cart/:id
 app.delete("/api/cart/:id", (req, res) => {
   const { id } = req.params;
   const idx = CART.findIndex((c) => c.id === id);
@@ -99,19 +100,21 @@ app.delete("/api/cart/:id", (req, res) => {
   res.json({ message: "Removed", removed });
 });
 
-// PATCH /api/cart/:id -> update qty
+// PATCH /api/cart/:id
 app.patch("/api/cart/:id", (req, res) => {
   const { id } = req.params;
   const { qty } = req.body || {};
   if (!qty || qty <= 0)
     return res.status(400).json({ error: "qty (>0) required" });
+
   const ci = CART.find((c) => c.id === id);
   if (!ci) return res.status(404).json({ error: "Cart item not found" });
+
   ci.qty = Number(qty);
   res.json({ message: "Updated", cartItem: ci });
 });
 
-// POST /api/checkout -> { cartItems } (array of { productId, qty } )
+// POST /api/checkout
 app.post("/api/checkout", (req, res) => {
   const { cartItems } = req.body || {};
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
@@ -119,23 +122,22 @@ app.post("/api/checkout", (req, res) => {
       .status(400)
       .json({ error: "cartItems (non-empty array) required" });
   }
-  // compute total
+
   let total = 0;
   const receiptItems = cartItems.map((ci) => {
-    const p = PRODUCTS.find((x) => x.id === ci.productId) || {
-      name: "Unknown",
-      price: 0,
-    };
+    const p = PRODUCTS.find((x) => x.id === ci.productId) || {};
     const lineTotal = (p.price || 0) * (ci.qty || 0);
     total += lineTotal;
+
     return {
       productId: ci.productId,
-      name: p.name,
-      price: p.price,
+      name: p.name || "Unknown",
+      price: p.price || 0,
       qty: ci.qty,
       lineTotal,
     };
   });
+
   const receipt = {
     id: uuidv4(),
     items: receiptItems,
@@ -143,13 +145,11 @@ app.post("/api/checkout", (req, res) => {
     timestamp: new Date().toISOString(),
   };
 
-  // clear server cart (mock checkout)
   CART = [];
-
   res.json({ message: "Checkout successful (mock)", receipt });
 });
 
-// health
+// health check
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () =>

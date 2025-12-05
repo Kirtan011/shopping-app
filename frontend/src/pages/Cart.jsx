@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchCart, removeCartItem, updateCartItem } from "../api";
 import CartItem from "../components/CartItem";
 import { Link } from "react-router-dom";
+import ProductDetails from "./ProductDetails";
 
 export default function Cart() {
   const [cart, setCart] = useState({ items: [], total: 0 });
@@ -23,7 +24,7 @@ export default function Cart() {
         <>
           {cart.items.map((item) => (
             <CartItem
-              key={item._id}
+              key={item.id}
               item={item}
               onRemove={(id) => removeCartItem(id).then(load)}
               onUpdate={(id, qty) => updateCartItem(id, qty).then(load)}
@@ -38,6 +39,10 @@ export default function Cart() {
           >
             Proceed to Checkout
           </Link>
+          <ProductDetails
+            onRemove={(id) => removeCartItem(id).then(load)}
+            onUpdate={(id, qty) => updateCartItem(id, qty).then(load)}
+          />
         </>
       )}
     </div>

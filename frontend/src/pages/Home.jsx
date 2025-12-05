@@ -32,7 +32,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="mt-7 min-h-screen flex flex-col">
       {/* ✅ Loader */}
       {loading ? (
         <div className="flex-1 flex justify-center items-center">

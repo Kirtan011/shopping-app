@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 export default function ProductCard({ product, onAdd }) {
   return (
     <div className="group bg-gray-950/80   rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
@@ -27,6 +28,12 @@ export default function ProductCard({ product, onAdd }) {
 
         <div className="flex items-center justify-between mt-auto">
           <p className="text-blue-400 font-light text-xl">₹{product.price}</p>
+
+          <Link to={`/product/${product.id}`}>
+            <button className="bg-blue-900 hover:bg-blue-400 text-white font-md px-4 py-2 rounded-lg shadow-md transition-transform transform hover:scale-90 cursor-pointer active:scale-95">
+              View
+            </button>
+          </Link>
 
           <button
             onClick={() => onAdd(product._id || product.id)}
