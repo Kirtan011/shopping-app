@@ -29,32 +29,25 @@ export default function ProductDetails() {
     });
   }, [id]);
 
-  const handleAdd = async () => {
-    if (!cartItemId) {
-      await addToCart(product.id, 1);
-      const cart = await fetchCart();
-      const item = cart.items.find((c) => c.productId === product.id);
-      setCartItemId(item.id);
-      setCount(item.qty);
-      return;
-    }
-
-    const newQty = count + 1;
-    setCount(newQty);
-    await updateCartItem(cartItemId, newQty);
+  const handleAdd = () => {
+    setCount(count + 1);
   };
 
-  const handleDrop = async () => {
-    if (count <= 1) return;
-
-    const newQty = count - 1;
-    setCount(newQty);
-    await updateCartItem(cartItemId, newQty);
+  const handleDrop = () => {
+    if (count > 0) setCount(count - 1);
   };
 
   const addToCartNow = async () => {
-    await addToCart(product.id, count);
-    alert("Added to cart!");
+    if (count <= 0) return;
+
+    if (!cartItemId) {
+      const item = await addToCart(product.id, count);
+      setCartItemId(item.id);
+    } else {
+      await updateCartItem(cartItemId, count);
+    }
+
+    alert("Cart updated!");
   };
 
   if (!product)
